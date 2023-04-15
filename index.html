@@ -72,8 +72,7 @@ fetch(url)
     };
 	
 	var now = new Date();
-    var skrg = now.getHours() + '.' + now.getMinutes();
-
+        var skrg = now.getHours() + '.' + now.getMinutes();
 	var garis = {
         x: [skrg, skrg],
         y: [0, 1],
@@ -81,6 +80,22 @@ fetch(url)
         mode: 'lines',
         type: 'line',
         line: {color: 'red', dash: 'dash', width : 1}
+    };
+	var garis24 = {
+        x: [24, 24],
+        y: [0, 1],
+        name: 'Jam 00.00 Besok',
+        mode: 'lines',
+        type: 'line',
+        line: {color: 'grey', dash: 'dash', width : 1}
+    };
+	var garis48 = {
+        x: [48, 48],
+        y: [0, 1],
+        name: 'Jam 00.00 Lusa',
+        mode: 'lines',
+        type: 'line',
+        line: {color: 'grey', dash: 'dash', width : 1}
     };
 
     // Konfigurasi layout plot
@@ -92,7 +107,7 @@ fetch(url)
     };
 	
     // Menampilkan plot
-    Plotly.newPlot('plot', [trace1, trace2, trace3, trace4, garis], layout);
+    Plotly.newPlot('plot', [trace1, trace2, trace3, trace4, garis, garis24, garis48], layout);
 })
 .catch(error => console.error(error));
 </script>
