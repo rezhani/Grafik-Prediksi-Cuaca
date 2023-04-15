@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Grafik Temperatur, Probabilitas Presipitasi, Tekanan Udara dan Tutupan Awan</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+
+<div id="plot"></div>
+
+<script>
+// Data dari API
+var url = 'https://api.open-meteo.com/v1/forecast?latitude=-0.46&longitude=117.14&hourly=temperature_2m,precipitation_probability,surface_pressure,cloudcover,vapor_pressure_deficit&forecast_days=3&timezone=Asia%2FSingapore';
+
+// Ambil data dari API
+fetch(url)
+.then(response => response.json())
+.then(data => {
+    // Ambil data temperatur 2 meter
+    var temperatures = data['hourly']['temperature_2m'].slice(0, 70);
+
+    // Ambil data probabilitas presipitasi
+    var precipitation_probabilities = data['hourly']['precipitation_probability'].slice(0, 70);
+
+    // Ambil data tekanan udara
+    var surface_pressures = data['hourly']['surface_pressure'].slice(0, 70);
+
+    // Ambil data tutupan awan
+    var cloud_cover = data['hourly']['cloudcover'].slice(0, 70);
+
+    // Mengatur sumbu x dengan jam
+    var hours = Array.from({length: 70}, (_, i) => i + 1);
+
+    // Data untuk plot temperatur 2m
+    var trace1 = {
+        x: hours,
+        y: temperatures.map(temp => temp/55),
+        name: 'Temperatur (°C)',
+        mode: 'lines',
+        type: 'scatter',
+        line: {color: 'orange'}
+    };
+
+    // Data untuk plot probabilitas presipitasi
+    var trace2 = {
+        x: hours,
+        y: precipitation_probabilities.map(prob => prob/97.5),
+        name: 'Probabilitas Presipitasi (%)',
+        mode: 'lines',
+        type: 'scatter',
+        line: {color: 'blue'}
+    };
+
+    // Data untuk plot tekanan udara
+    var trace3 = {
+        x: hours,
+        y: surface_pressures.map(pressure => pressure/2000),
+        name: 'Tekanan Udara (hPa)',
+        mode: 'lines',
+        type: 'scatter',
+        line: {color: 'black'}
+    };
+
+    // Data untuk plot tutupan awan
+    var trace4 = {
+        x: hours,
+        y: cloud_cover.map(cover => cover/130),
+        name: 'Tutupan Awan',
+        mode: 'lines',
+        type: 'scatter',
+        line: {color: 'green'}
+    };
+	
+	var now = new Date();
+    var skrg = now.getHours() + '.' + now.getMinutes();
+
+	var garis = {
+        x: [skrg, skrg],
+        y: [0, 1],
+        name: 'Waktu saat ini',
+        mode: 'lines',
+        type: 'line',
+        line: {color: 'red', dash: 'dash', width : 1}
+    };
+
+    // Konfigurasi layout plot
+    var layout = {
+        title: 'Grafik Temperatur, Probabilitas Presipitasi, Tekanan Udara dan Tutupan Awan Samarinda',
+        xaxis: {title: 'Jam'},
+        yaxis: {title: 'Nilai', range: [0, 1]},
+        legend: {x: 1, y: 1}
+    };
+	
+    // Menampilkan plot
+    Plotly.newPlot('plot', [trace1, trace2, trace3, trace4, garis], layout);
+})
+.catch(error => console.error(error));
+</script>
+
+</body>
+
+</html>
