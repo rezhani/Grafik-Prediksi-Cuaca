@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Grafik Temperatur, Probabilitas Presipitasi, Tekanan Udara dan Tutupan Awan</title>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-</head>
+	<head>
+	  	<title>Grafik Temperatur, Probabilitas Presipitasi, Tekanan Udara dan Tutupan Awan</title>
+		<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+		<link rel="stylesheet" href="style.css">
+	</head>
 <body>
 
 <div id="plot"></div>
@@ -79,7 +80,7 @@ fetch(url)
         name: 'Waktu saat ini',
         mode: 'lines',
         type: 'line',
-        line: {color: 'red', dash: 'solid', width : 1}
+        line: {color: 'red', dash: 'dash', width : 1}
     };
 	var garis24 = {
         x: [24, 24],
@@ -87,7 +88,7 @@ fetch(url)
         name: 'Jam 00.00 Besok',
         mode: 'lines',
         type: 'line',
-        line: {color: 'grey', dash: 'dash', width : 1}
+        line: {color: 'grey', dash: 'solid', width : 1}
     };
 	var garis48 = {
         x: [48, 48],
@@ -95,7 +96,7 @@ fetch(url)
         name: 'Jam 00.00 Lusa',
         mode: 'lines',
         type: 'line',
-        line: {color: 'grey', dash: 'dash', width : 1}
+        line: {color: 'grey', dash: 'solid', width : 1}
     };
 
     // Konfigurasi layout plot
