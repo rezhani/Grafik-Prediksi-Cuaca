@@ -19,7 +19,8 @@
 	.then(response => response.json())
 	.then(data => {
 	    // Ambil data temperatur 2 meter
-	    var temperatures = data['hourly']['temperature_2m'].slice(0, 70);
+	    //var temperatures = data['hourly']['temperature_2m'].slice(0, 72);
+	    var temperatures = data['hourly']['vapor_pressure_deficit'].slice(0, 72);
 
 	    // Ambil data probabilitas presipitasi
 	    var precipitation_probabilities = data['hourly']['precipitation_probability'].slice(0, 70);
