@@ -20,8 +20,8 @@ fetch(url)
 .then(response => response.json())
 .then(data => {
     // Ambil data temperatur 2 meter
-    //var temperatures = data['hourly']['temperature_2m'].slice(0, 72);
-	var temperatures = data['hourly']['vapor_pressure_deficit'].slice(0, 72);
+    var temperatures = data['hourly']['temperature_2m'].slice(0, 72);
+	//var temperatures = data['hourly']['vapor_pressure_deficit'].slice(0, 72);
 
     // Ambil data probabilitas presipitasi
     var precipitation_probabilities = data['hourly']['precipitation_probability'].slice(0, 72);
@@ -38,7 +38,7 @@ fetch(url)
     // Data untuk plot temperatur 2m
     var trace1 = {
         x: hours,
-        y: temperatures.map(temp => temp/1.7),
+        y: temperatures.map(temp => (temp-23)/10),
         name: 'Temperatur (°C)',
         mode: 'lines',
         type: 'scatter',
@@ -48,7 +48,7 @@ fetch(url)
     // Data untuk plot probabilitas presipitasi
     var trace2 = {
         x: hours,
-        y: precipitation_probabilities.map(prob => prob/97.5),
+        y: precipitation_probabilities.map(prob => prob/100),
         name: 'Probabilitas Presipitasi (%)',
         mode: 'lines',
         type: 'scatter',
@@ -58,7 +58,9 @@ fetch(url)
     // Data untuk plot tekanan udara
     var trace3 = {
         x: hours,
-        y: surface_pressures.map(pressure => pressure/2000),
+		//y: surface_pressures.map(pressure => pressure/2000),
+        //y: surface_pressures.map(pressure => (pressure-1000)/15),
+		y: surface_pressures.map(pressure => ((pressure-1004)/60)+0,4),
         name: 'Tekanan Udara (hPa)',
         mode: 'lines',
         type: 'scatter',
@@ -68,7 +70,8 @@ fetch(url)
     // Data untuk plot tutupan awan
     var trace4 = {
         x: hours,
-        y: cloud_cover.map(cover => cover/120),
+        y: cloud_cover.map(cover => cover/100),
+		//y: cloud_cover.map(cover => (cover-20)/80),
         name: 'Tutupan Awan',
         mode: 'lines',
         type: 'scatter',
@@ -100,7 +103,7 @@ fetch(url)
         name: 'Jam 48',
         mode: 'lines',
         type: 'line',
-        line: {color: 'black', dash: 'solid', width : 1}
+        line: {color: 'grey', dash: 'solid', width : 1}
     };
     // Konfigurasi layout plot
     	<!--
