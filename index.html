@@ -65,13 +65,13 @@ fetch(url)
     // Data untuk plot tutupan awan
     var trace4 = {
         x: hours,
-        y: cloud_cover.map(cover => cover/125),
+        y: cloud_cover.map(cover => cover/120),
         name: 'Tutupan Awan',
         mode: 'lines',
         type: 'scatter',
         line: {color: 'green'}
     };
-	
+	// Garis waktu saat ini
 	var now = new Date();
         var skrg = now.getHours() + '.' + now.getMinutes();
 	var garis = {
