@@ -167,36 +167,41 @@
 				// Konfigurasi layout plot	
 				var layout = {
 				title: 'Grafik Temperatur, Probabilitas Presipitasi, Tekanan Udara dan Tutupan Awan Samarinda',
-				xaxis: {title: 'Jam'},
-				yaxis: {title: 'Nilai', range: [0, 1]},
-				legend: {x: 1, y: 1}
-				};
-		
-				<!--
-				var layout = {
-				title: 'Forecast Cuaca Samarinda Selama 3 Hari',
 				xaxis: {
-					title: 'Jam',
-					tickvals: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70, 72], // Menyertakan jam 0, 24, 48, dan 72
-					ticktext: ['02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '00', '02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '00', '02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '00'], // Label untuk masing-masing jam
-					tickmode: 'array',
-					tickangle: -45, // Sudut label sumbu x
-					dtick: 2 // Interval tick sumbu x menjadi 2 jam
+					title: 'Jam'
 				},
 				yaxis: {
 					title: 'Nilai',
-					rangemode: 'tozero'
-					//range: [0,1]
+					range: [0, 1]
 				},
-				showlegend: true,
-				legend: {
-					x: 1,
-					y: 1
-				},
-				width: 1600,
-				height: 700
+				legend: {x: 1, y: 1}
+				};
+				
+				<!--
+				var layout = {
+					title: 'Forecast Cuaca Samarinda Selama 3 Hari',
+					xaxis: {
+						title: 'Jam',
+						tickvals: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70, 72], // Menyertakan jam 0, 24, 48, dan 72
+						ticktext: ['02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '00', '02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '00', '02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '00'], // Label untuk masing-masing jam
+						tickmode: 'array',
+						tickangle: -45, // Sudut label sumbu x
+						dtick: 2 // Interval tick sumbu x menjadi 2 jam
+					},
+					yaxis: {
+						title: 'Nilai',
+						rangemode: 'tozero'
+						//range: [0,1]
+					},
+					showlegend: true,
+					legend: {
+						x: 1,
+						y: 1
+					},
 				};
 				-->
+				
+				
 	
 				// Menampilkan plot
 				Plotly.newPlot('plot', [trace0, trace1, trace2, trace3, trace4, garis, garis24, garis48
