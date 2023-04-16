@@ -53,7 +53,6 @@
 	}
 	</script>
 	
-
 	<div id="plot"></div>
 	<script>
         function plotGraph(latitude, longitude) {
@@ -88,7 +87,8 @@
 				//Data untuk plot kode cuaca
 				var trace0 = {
 					x: hours,
-					y: weathercode.map(weather => weather/100),
+					y: weathercode.map(
+					weather => weather/100),
 					name: 'Kode Cuaca',
 					mode: 'lines',
 					type: 'scatter',
@@ -99,7 +99,7 @@
 				var trace1 = {
 					x: hours,
 					y: temperatures.map(temp => (temp-24)/10),
-					name: 'Temperatur (°C)',
+					name: 'Temperatur',
 					mode: 'lines',
 					type: 'scatter',
 					line: {color: 'orange'}
@@ -109,7 +109,7 @@
 				var trace2 = {
 					x: hours,
 					y: precipitation_probabilities.map(prob => prob/100),
-					name: 'Probabilitas Presipitasi (%)',
+					name: 'Probabilitas Presipitasi',
 					mode: 'lines',
 					type: 'scatter',
 					line: {color: 'blue', width : 5}
@@ -118,8 +118,8 @@
 				// Data untuk plot tekanan udara
 				var trace3 = {
 					x: hours,
-					y: surface_pressures.map(pressure => ((pressure-1004)/60)+0,4),
-					name: 'Tekanan Udara (hPa)',
+					y: surface_pressures.map(pressure => ((pressure-970)/100)+0.5),
+					name: 'Tekanan Udara',
 					mode: 'lines',
 					type: 'scatter',
 					line: {color: 'black'}
@@ -142,7 +142,7 @@
 				var garis = {
 					x: [skrg, skrg],
 					y: [0, 1],
-					name: 'Waktu saat ini',
+					name: 'Waktu Saat Ini',
 					mode: 'lines',
 					type: 'line',
 					line: {color: 'red', dash: 'dash', width : 1}
@@ -165,21 +165,9 @@
 				};
     
 				// Konfigurasi layout plot	
-				var layout = {
-				title: 'Grafik Temperatur, Probabilitas Presipitasi, Tekanan Udara dan Tutupan Awan Samarinda',
-				xaxis: {
-					title: 'Jam'
-				},
-				yaxis: {
-					title: 'Nilai',
-					range: [0, 1]
-				},
-				legend: {x: 1, y: 1}
-				};
 				
-				<!--
 				var layout = {
-					title: 'Forecast Cuaca Samarinda Selama 3 Hari',
+					title: 'Forecast Cuaca Selama 3 Hari',
 					xaxis: {
 						title: 'Jam',
 						tickvals: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70, 72], // Menyertakan jam 0, 24, 48, dan 72
@@ -199,12 +187,9 @@
 						y: 1
 					},
 				};
-				-->
-				
-				
 	
 				// Menampilkan plot
-				Plotly.newPlot('plot', [trace0, trace1, trace2, trace3, trace4, garis, garis24, garis48
+				Plotly.newPlot('plot', [trace0, trace2, trace1, trace3, trace4, garis, garis24, garis48
 				], layout);
 			})
 		.catch(error => console.error(error));
