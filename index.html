@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Grafik Cuaca</title>
+    <title>Longitude & Latitude Finder</title>
     //<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -57,7 +57,7 @@
 	<script>
         function plotGraph(latitude, longitude) {
             // Data dari API
-            var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + latitude + '&longitude=' + longitude + '&hourly=temperature_2m,precipitation_probability,weathercode,surface_pressure,cloudcover&forecast_days=3&timezone=Asia%2FSingapore';
+            var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + latitude + '&longitude=' + longitude + '&hourly=temperature_2m,precipitation_probability,weathercode,surface_pressure,cloudcover_high&forecast_days=3&timezone=Asia%2FSingapore';
 
             // Ambil data dari API
             fetch(url)
@@ -74,7 +74,8 @@
 				var surface_pressures = data['hourly']['surface_pressure'].slice(0, 72);
 
 				// Ambil data tutupan awan
-				var cloud_cover = data['hourly']['cloudcover'].slice(0, 72);
+				var cloud_cover = data['hourly']['cloudcover_high'].slice(0, 72);
+				//var cloud_cover = data['hourly']['cloudcover'].slice(0, 72);
 				
 				// Ambil data kode cuaca
 				var weathercode = data['hourly']['weathercode'].slice(0,72);
@@ -89,52 +90,51 @@
 					x: hours,
 					y: weathercode.map(
 					weather => weather/100),
-					name: 'Kode Cuaca:',
-					//<3 cerah; 45= kabut; >80 hujan',
+					name: 'Kode Cuaca: <0.03 cerah, =0.45 kabut, >0.8 hujan',
 					mode: 'lines',
 					type: 'scatter',
 					line: {color: 'red', dash: 'solid', width : 1}
 				};
-
-				// Data untuk plot temperatur 2m
+				
+				// Data untuk plot probabilitas presipitasi
 				var trace1 = {
 					x: hours,
-					y: temperatures.map(temp => (temp-24)/10),
-					name: 'Temperatur',
+					y: precipitation_probabilities.map(prob => prob/100),
+					name: 'Probabilitas Presipitasi: x100% ',
 					mode: 'lines',
 					type: 'scatter',
-					line: {color: 'orange'}
+					line: {color: 'blue', width : 5}
 				};
-
-				// Data untuk plot probabilitas presipitasi
+				
+				// Data untuk plot tutupan awan
 				var trace2 = {
 					x: hours,
-					y: precipitation_probabilities.map(prob => prob/100),
-					name: 'Probabilitas Presipitasi',
+					y: cloud_cover.map(cover => cover/100),
+					//y: cloud_cover.map(cover => (cover-20)/80),
+					name: 'Tutupan Awan: x100%',
 					mode: 'lines',
 					type: 'scatter',
-					line: {color: 'blue', width : 3}
+					line: {color: 'green'}
 				};
-
+				
 				// Data untuk plot tekanan udara
 				var trace3 = {
 					x: hours,
 					y: surface_pressures.map(pressure => ((pressure-970)/100)+0.5),
-					name: 'Tekanan Udara',
+					name: 'Tekanan Udara: 0=970, 1=1015',
 					mode: 'lines',
 					type: 'scatter',
 					line: {color: 'black'}
 				};
-
-				// Data untuk plot tutupan awan
+				
+				// Data untuk plot temperatur 2m
 				var trace4 = {
 					x: hours,
-					y: cloud_cover.map(cover => cover/100),
-					//y: cloud_cover.map(cover => (cover-20)/80),
-					name: 'Tutupan Awan',
+					y: temperatures.map(temp => (temp-24)/10),
+					name: 'Temperatur: 0=24°C, 0.5=29°C, 1=34°C',
 					mode: 'lines',
 					type: 'scatter',
-					line: {color: 'green'}
+					line: {color: 'orange'}
 				};
 				
 				var now = new Date();
@@ -146,6 +146,7 @@
 					name: 'Waktu Saat Ini',
 					mode: 'lines',
 					type: 'line',
+					rangemode: 'tozero',
 					line: {color: 'red', dash: 'dash', width : 1}
 				};
 				var garis24 = {
@@ -154,6 +155,7 @@
 					name: 'Jam 00 Besok',
 					mode: 'lines',
 					type: 'line',
+					showlegend: false,
 					line: {color: 'grey', dash: 'solid', width : 1}
 				};
 				var garis48 = {
@@ -162,6 +164,7 @@
 					name: 'Jam 00 Lusa',
 					mode: 'lines',
 					type: 'line',
+					showlegend: false,
 					line: {color: 'grey', dash: 'solid', width : 1}
 				};
     
@@ -184,13 +187,18 @@
 					},
 					showlegend: true,
 					legend: {
-						x: 1,
-						y: 1
+						
+						"orientation": "h"
+						//xanchor: 'right',
+						//x: 1,
+						//y: 1
 					},
+					//width: 1500,
+					//height: 500
 				};
 	
 				// Menampilkan plot
-				Plotly.newPlot('plot', [trace0, trace2, trace1, trace3, trace4, garis, garis24, garis48
+				Plotly.newPlot('plot', [trace0, trace1, trace2, trace3, trace4, garis, garis24, garis48
 				], layout);
 			})
 		.catch(error => console.error(error));
