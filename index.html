@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grafik Cuaca Input Kota</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <meta http-equiv="refresh" content="900">
+</head>
+<body>
+
+	<div class="container mt-5">
+        <h1 class="text-center mb-4">Grafik Cuaca</h1>
+        <div class="row justify-content-center">
+            <div class="col-sm-8 col-md-6 col-lg-4">
+                <div class="form-group">
+                    <input type="text" class="form-control" id="cityInput" placeholder="Masukkan nama kota" onkeydown="checkEnterKey(event)">
+                </div>
+                <button class="btn btn-primary btn-block" onclick="findCoordinates()">Cari</button>
+                <p class="mt-3 text-center" id="coordinates"></p>
+            </div>
+        </div>
+    </div>
+	
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script>
+	function findCoordinates() {
+		var cityName = document.getElementById('cityInput').value;
+		if (cityName !== '') {
+			$.getJSON('https://nominatim.openstreetmap.org/search?city=' + cityName + '&format=json', function(data) {
+				if (data.length > 0) {
+					let hasil = 'Hasil pencarian untuk <strong>' + cityName + '</strong>'; 
+					var latitude = parseFloat(data[0].lat).toFixed(2);
+					var longitude = parseFloat(data[0].lon).toFixed(2);
+					var coordinates = ' (Latitude: ' + latitude + ' & Longitude: ' + longitude + ')';
+					document.getElementById('coordinates').innerHTML = hasil + coordinates;
+
+					// Plot grafik
+					plotGraph(latitude, longitude);
+				} else {
+					document.getElementById('coordinates').innerHTML = 'Data tidak ditemukan&#128532;';
+				}
+			});
+		} else {
+			document.getElementById('coordinates').innerHTML = 'Masukkan nama kota';
+		}
+	}
+
+	function checkEnterKey(event) {
+		if (event.keyCode === 13) {
+			event.preventDefault();
+			findCoordinates();
+		}
+	}
+	</script>
+	
+    <div class="container">
+        <!-- Div untuk Grafik 0 (Weather Graph Model Sebelumnya) -->
+        <div id="plot0"></div>
+		<hr>
+        <!-- Div untuk Grafik 1 (Weather Graph Japan) -->
+        <div id="plot1"></div>
+		<hr>
+        <!-- Div untuk Grafik 2 (Weather Graph Australia) -->
+        <div id="plot2"></div>
+        <hr>
+		<!-- Div untuk Grafik 3 (Weather Graph China) -->
+        <div id="plot3"></div>
+		<hr>
+		<!-- Div untuk Grafik 4 (Weather Graph Kanada) -->
+        <div id="plot4"></div>
+		<hr>
+		<!-- Div untuk Grafik 5 (Weather Graph ECMWF) -->
+        <div id="plot5"></div>
+    </div>
+	
+	<footer class="text-center mb-4"><a class="badge-base__link LI-simple-link" href="https://id.linkedin.com/in/rezhani?trk=profile-badge">LinkedIn: Ahmad Rezhani</a>
+	</footer>
+
+    <script>
+        // Data untuk grafik 1 (Weather Graph JMA JAPAN)
+        // Data dari API
+		function plotGraph(latitude, longitude){
+	            var url0 = "https://api.open-meteo.com/v1/forecast?latitude=" + latitude + "&longitude=" + longitude + "&hourly=temperature_2m,precipitation_probability,weathercode,surface_pressure,cloudcover_high&forecast_days=3&timezone=Asia%2FSingapore";
+				
+				// Ambil data dari API
+	            fetch(url0)
+	            .then(response => response.json())
+	            .then(data => {
+
+					// Ambil data temperatur 2 meter
+					var temperatures = data['hourly']['temperature_2m'].slice(0, 72);
+
+					// Ambil data probabilitas presipitasi
+					var precipitation_probabilities = data['hourly']['precipitation_probability'].slice(0, 72);
+
+					// Ambil data tekanan udara
+					var surface_pressures = data['hourly']['surface_pressure'].slice(0, 72);
+
+					// Ambil data tutupan awan
+					var cloud_cover = data['hourly']['cloudcover_high'].slice(0, 72);
+					//var cloud_cover = data['hourly']['cloudcover'].slice(0, 72);
+					
+					// Ambil data kode cuaca
+					var weathercode = data['hourly']['weathercode'].slice(0,72);
+					
+					// Mengatur sumbu x dengan jam
+					var hours = Array.from({length: 72}, (_, i) => i + 1);
+					
+					//Data untuk plot kode cuaca
+					var trace0 = {
+						x: hours,
+						y: weathercode.map(
+						weather => weather/100),
+						name: 'Kode Cuaca: <0.03 cerah, =0.45 kabut, >0.8 hujan',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'red', dash: 'solid', width : 1}
+					};
+					
+					// Data untuk plot probabilitas presipitasi
+					var trace1 = {
+						x: hours,
+						y: precipitation_probabilities.map(prob => prob/100),
+						name: 'Probabilitas Presipitasi: x100% ',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'blue', width : 5}
+					};
+					
+					// Data untuk plot tutupan awan
+					var trace2 = {
+						x: hours,
+						y: cloud_cover.map(cover => cover/100),
+						//y: cloud_cover.map(cover => (cover-20)/80),
+						name: 'Tutupan Awan: x100%',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'green'}
+					};
+					
+					// Data untuk plot tekanan udara
+					var trace3 = {
+						x: hours,
+						y: surface_pressures.map(pressure => ((pressure-970)/100)+0.5),
+						name: 'Tekanan Udara: 0=970, 1=1015',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'black'}
+					};
+					
+					// Data untuk plot temperatur 2m
+					var trace4 = {
+						x: hours,
+						y: temperatures.map(temp => (temp-24)/10),
+						name: 'Temperatur: 0=24°C, 0.5=29°C, 1=34°C',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'orange'}
+					};
+					
+					var now = new Date();
+					var skrg = now.getHours() + '.' + now.getMinutes();
+
+					var garis = {
+						x: [skrg, skrg],
+						y: [0, 1],
+						name: 'Waktu Saat Ini',
+						mode: 'lines',
+						type: 'line',
+						rangemode: 'tozero',
+						line: {color: 'red', dash: 'dash', width : 3}
+					};
+					var garis24 = {
+						x: [24, 24],
+						y: [0, 1],
+						name: 'Jam 00 Besok',
+						mode: 'lines',
+						type: 'line',
+						showlegend: false,
+						line: {color: 'grey', dash: 'solid', width : 1}
+					};
+					var garis48 = {
+						x: [48, 48],
+						y: [0, 1],
+						name: 'Jam 00 Lusa',
+						mode: 'lines',
+						type: 'line',
+						showlegend: false,
+						line: {color: 'grey', dash: 'solid', width : 1}
+					};
+	    
+					// Konfigurasi layout plot	
+					
+					var layout0 = {
+						title: 'Forecast Cuaca oleh OpenMeteo Model Selama 3 Hari',
+						xaxis: {
+							title: 'Jam',
+							tickvals: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70, 72], // Menyertakan jam 0, 24, 48, dan 72
+							ticktext: ['02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '00', '02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '00', '02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '00'], // Label untuk masing-masing jam
+							tickmode: 'array',
+							tickangle: -45, // Sudut label sumbu x
+							dtick: 2 // Interval tick sumbu x menjadi 2 jam
+						},
+						yaxis: {
+							title: 'Nilai',
+							rangemode: 'tozero',
+							//automargin: true
+							//range: [0,1]
+						},
+						showlegend: false,
+						legend: {
+							
+							"orientation": "h"
+							//xanchor: 'right',
+							//x: 1,
+							//y: 1
+						},
+						autosize: true,
+						//width: 640,
+						//height: 400
+					};
+		
+					// Menampilkan plot
+					Plotly.newPlot('plot0', [trace0, trace1, trace2, trace3, trace4, garis, garis24, garis48], layout0, {responsive: true});
+				})
+			.catch(error => console.error(error));
+			
+		// Data untuk grafik 1 (Weather Graph JMA JAPAN)
+        // Data dari API
+	            var url1 = "https://api.open-meteo.com/v1/forecast?latitude=" + latitude + "&longitude=" + longitude + "&hourly=temperature_2m,precipitation,rain,weather_code,surface_pressure,cloud_cover_high&timezone=Asia%2FSingapore&forecast_days=3&models=jma_seamless";
+				
+				// Ambil data dari API
+	            fetch(url1)
+	            .then(response => response.json())
+	            .then(data => {
+
+					// Ambil data temperatur 2 meter
+					var temperatures = data['hourly']['temperature_2m'].slice(0, 72);
+
+					// Ambil data probabilitas presipitasi
+					var precipitation_probabilities = data['hourly']['precipitation'].slice(0, 72);
+
+					// Ambil data tekanan udara
+					var surface_pressures = data['hourly']['surface_pressure'].slice(0, 72);
+
+					// Ambil data tutupan awan
+					var cloud_cover = data['hourly']['cloud_cover_high'].slice(0, 72);
+					//var cloud_cover = data['hourly']['cloudcover'].slice(0, 72);
+					
+					// Ambil data kode cuaca
+					var weathercode = data['hourly']['weather_code'].slice(0,72);
+					
+					// Mengatur sumbu x dengan jam
+					var hours = Array.from({length: 72}, (_, i) => i + 1);
+					
+					//Data untuk plot kode cuaca
+					var trace0 = {
+						x: hours,
+						y: weathercode.map(
+						weather => weather/100),
+						name: 'Kode Cuaca: <0.03 cerah, =0.45 kabut, >0.8 hujan',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'red', dash: 'solid', width : 1}
+					};
+					
+					// Data untuk plot probabilitas presipitasi
+					var trace1 = {
+						x: hours,
+						y: precipitation_probabilities.map(prob => prob/5),
+						name: 'Probabilitas Presipitasi: x100% ',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'blue', width : 5}
+					};
+					
+					// Data untuk plot tutupan awan
+					var trace2 = {
+						x: hours,
+						y: cloud_cover.map(cover => cover/100),
+						//y: cloud_cover.map(cover => (cover-20)/80),
+						name: 'Tutupan Awan: x100%',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'green'}
+					};
+					
+					// Data untuk plot tekanan udara
+					var trace3 = {
+						x: hours,
+						y: surface_pressures.map(pressure => ((pressure-970)/100)+0.5),
+						name: 'Tekanan Udara: 0=970, 1=1015',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'black'}
+					};
+					
+					// Data untuk plot temperatur 2m
+					var trace4 = {
+						x: hours,
+						y: temperatures.map(temp => (temp-22)/10),
+						name: 'Temperatur: 0=24°C, 0.5=29°C, 1=34°C',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'orange'}
+					};
+					
+					var now = new Date();
+					var skrg = now.getHours() + '.' + now.getMinutes();
+
+					var garis = {
+						x: [skrg, skrg],
+						y: [0, 1],
+						name: 'Waktu Saat Ini',
+						mode: 'lines',
+						type: 'line',
+						rangemode: 'tozero',
+						line: {color: 'red', dash: 'dash', width : 3}
+					};
+					var garis24 = {
+						x: [24, 24],
+						y: [0, 1],
+						name: 'Jam 00 Besok',
+						mode: 'lines',
+						type: 'line',
+						showlegend: false,
+						line: {color: 'grey', dash: 'solid', width : 1}
+					};
+					var garis48 = {
+						x: [48, 48],
+						y: [0, 1],
+						name: 'Jam 00 Lusa',
+						mode: 'lines',
+						type: 'line',
+						showlegend: false,
+						line: {color: 'grey', dash: 'solid', width : 1}
+					};
+	    
+					// Konfigurasi layout plot	
+					
+					var layout1 = {
+						title: 'Forecast Cuaca oleh JMA Japan Selama 3 Hari',
+						xaxis: {
+							title: 'Jam',
+							tickvals: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70, 72], // Menyertakan jam 0, 24, 48, dan 72
+							ticktext: ['02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '00', '02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '00', '02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '00'], // Label untuk masing-masing jam
+							tickmode: 'array',
+							tickangle: -45, // Sudut label sumbu x
+							dtick: 2 // Interval tick sumbu x menjadi 2 jam
+						},
+						yaxis: {
+							title: 'Nilai',
+							rangemode: 'tozero',
+							//automargin: true
+							//range: [0,1]
+						},
+						showlegend: false,
+						legend: {
+							
+							"orientation": "h"
+							//xanchor: 'right',
+							//x: 1,
+							//y: 1
+						},
+						autosize: true,
+						//width: 640,
+						//height: 400
+					};
+		
+					// Menampilkan plot
+					Plotly.newPlot('plot1', [trace0, trace1, trace2, trace3, trace4, garis, garis24, garis48], layout1, {responsive: true});
+				})
+			.catch(error => console.error(error));
+
+        // Data untuk grafik 2 (Weather Graph BOM Australia)
+        // Data dari API
+		var url2 = "https://api.open-meteo.com/v1/forecast?latitude=" + latitude + "&longitude=" + longitude + "&hourly=temperature_2m,precipitation,rain,weather_code,surface_pressure,cloud_cover_high&forecast_days=3&timezone=Asia%2FSingapore&models=bom_access_global";
+				
+				// Ambil data dari API
+	            fetch(url2)
+	            .then(response => response.json())
+	            .then(data => {
+					
+					// Ambil data temperatur 2 meter
+					var temperatures = data['hourly']['temperature_2m'].slice(0, 72);
+
+					// Ambil data probabilitas presipitasi
+					var precipitation_probabilities = data['hourly']['precipitation'].slice(0, 72);
+
+					// Ambil data hujan
+					var rain = data['hourly']['rain'].slice(0, 72);
+
+					// Ambil data tekanan udara
+					var surface_pressures = data['hourly']['surface_pressure'].slice(0, 72);
+					
+					// Ambil data tutupan awan
+					var cloud_cover = data['hourly']['cloud_cover_high'].slice(0, 72);
+					//var cloud_cover = data['hourly']['cloudcover'].slice(0, 72);
+					
+					// Ambil data kode cuaca
+					var weathercode = data['hourly']['weather_code'].slice(0,72);
+					
+					// Mengatur sumbu x dengan jam
+					var hours = Array.from({length: 72}, (_, i) => i + 1);
+
+					
+					//Data untuk plot kode cuaca
+					var trace0 = {
+						x: hours,
+						y: weathercode.map(
+						weather => weather/100),
+						name: 'Kode Cuaca: <0.03 cerah, =0.45 kabut, >0.8 hujan',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'red', dash: 'solid', width : 1}
+					};
+					
+					// Data untuk plot presipitasi
+					var trace1 = {
+						x: hours,
+						y: precipitation_probabilities.map(prob => prob/3),
+						name: ' Presipitasi: x100% ',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'blue', width : 5}
+					};
+					
+					// Data untuk plot tutupan awan
+					var trace2 = {
+						x: hours,
+						y: cloud_cover.map(cover => cover/100),
+						//y: cloud_cover.map(cover => (cover-20)/80),
+						name: 'Tutupan Awan: x100%',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'green'}
+					};
+					
+					// Data untuk plot tekanan udara
+					var trace3 = {
+						x: hours,
+						y: surface_pressures.map(pressure => ((pressure-970)/100)+0.5),
+						name: 'Tekanan Udara: 0=970, 1=1015',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'black'}
+					};
+					
+					// Data untuk plot temperatur 2m
+					var trace4 = {
+						x: hours,
+						y: temperatures.map(temp => (temp-23)/10),
+						name: 'Temperatur: 0=24°C, 0.5=29°C, 1=34°C',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'orange'}
+					};
+					
+					var trace5 = {
+						x: hours,
+						y: rain.map(r => (r*2)),
+						name: 'Hujan',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'purple'}
+					};
+					
+					var now = new Date();
+					var skrg = now.getHours() + '.' + now.getMinutes();
+
+					var garis = {
+						x: [skrg, skrg],
+						y: [0, 1],
+						name: 'Waktu Saat Ini',
+						mode: 'lines',
+						type: 'line',
+						rangemode: 'tozero',
+						line: {color: 'red', dash: 'dash', width : 3}
+					};
+					var garis24 = {
+						x: [24, 24],
+						y: [0, 1],
+						name: 'Jam 00 Besok',
+						mode: 'lines',
+						type: 'line',
+						showlegend: false,
+						line: {color: 'grey', dash: 'solid', width : 1}
+					};
+					var garis48 = {
+						x: [48, 48],
+						y: [0, 1],
+						name: 'Jam 00 Lusa',
+						mode: 'lines',
+						type: 'line',
+						showlegend: false,
+						line: {color: 'grey', dash: 'solid', width : 1}
+					};
+	    
+					// Konfigurasi layout plot	
+					
+					var layout2 = {
+						title: 'Forecast Cuaca oleh BOM Australia Selama 3 Hari',
+						xaxis: {
+							title: 'Jam',
+							tickvals: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70, 72], // Menyertakan jam 0, 24, 48, dan 72
+							ticktext: ['02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '00', '02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '00', '02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '00'], // Label untuk masing-masing jam
+							tickmode: 'array',
+							tickangle: -45, // Sudut label sumbu x
+							dtick: 2 // Interval tick sumbu x menjadi 2 jam
+						},
+						yaxis: {
+							title: 'Nilai',
+							rangemode: 'tozero',
+							//automargin: true
+							//range: [0,1]
+						},
+						showlegend: true,
+						legend: {
+							
+							"orientation": "h"
+							//xanchor: 'right',
+							//x: 1,
+							//y: 1
+						},
+						autosize: true
+					};
+		
+					// Menampilkan plot
+					Plotly.newPlot('plot2', [trace0, trace1, trace2, trace3, trace4, trace5, garis, garis24, garis48], layout2, {responsive: true});
+				})
+			.catch(error => console.error(error));
+			
+		// Data untuk grafik 3 (Weather Graph CMA China)
+        // Data dari API
+		var url3 = "https://api.open-meteo.com/v1/forecast?latitude=" + latitude + "&longitude=" + longitude + "&hourly=temperature_2m,precipitation,rain,weather_code,surface_pressure,cloud_cover_high&timezone=Asia%2FSingapore&forecast_days=3&models=cma_grapes_global";
+				
+				// Ambil data dari API
+	            fetch(url3)
+	            .then(response => response.json())
+	            .then(data => {
+					
+					// Ambil data temperatur 2 meter
+					var temperatures = data['hourly']['temperature_2m'].slice(0, 72);
+
+					// Ambil data probabilitas presipitasi
+					var precipitation_probabilities = data['hourly']['precipitation'].slice(0, 72);
+
+					// Ambil data hujan
+					var rain = data['hourly']['rain'].slice(0, 72);
+
+					// Ambil data tekanan udara
+					var surface_pressures = data['hourly']['surface_pressure'].slice(0, 72);
+					
+					// Ambil data tutupan awan
+					var cloud_cover = data['hourly']['cloud_cover_high'].slice(0, 72);
+					//var cloud_cover = data['hourly']['cloudcover'].slice(0, 72);
+					
+					// Ambil data kode cuaca
+					var weathercode = data['hourly']['weather_code'].slice(0,72);
+					
+					// Mengatur sumbu x dengan jam
+					var hours = Array.from({length: 72}, (_, i) => i + 1);
+
+					
+					//Data untuk plot kode cuaca
+					var trace0 = {
+						x: hours,
+						y: weathercode.map(
+						weather => weather/100),
+						name: 'Kode Cuaca: <0.03 cerah, =0.45 kabut, >0.8 hujan',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'red', dash: 'solid', width : 1}
+					};
+					
+					// Data untuk plot presipitasi
+					var trace1 = {
+						x: hours,
+						y: precipitation_probabilities.map(prob => prob/2),
+						name: ' Presipitasi: x100% ',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'blue', width : 5}
+					};
+					
+					// Data untuk plot tutupan awan
+					var trace2 = {
+						x: hours,
+						y: cloud_cover.map(cover => cover/100),
+						//y: cloud_cover.map(cover => (cover-20)/80),
+						name: 'Tutupan Awan: x100%',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'green'}
+					};
+					
+					// Data untuk plot tekanan udara
+					var trace3 = {
+						x: hours,
+						y: surface_pressures.map(pressure => ((pressure-970)/100)+0.5),
+						name: 'Tekanan Udara: 0=970, 1=1015',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'black'}
+					};
+					
+					// Data untuk plot temperatur 2m
+					var trace4 = {
+						x: hours,
+						y: temperatures.map(temp => (temp-23)/10),
+						name: 'Temperatur: 0=24°C, 0.5=29°C, 1=34°C',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'orange'}
+					};
+					
+					var trace5 = {
+						x: hours,
+						y: rain.map(r => (r/2)),
+						name: 'Hujan',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'purple'}
+					};
+					
+					var now = new Date();
+					var skrg = now.getHours() + '.' + now.getMinutes();
+
+					var garis = {
+						x: [skrg, skrg],
+						y: [0, 1],
+						name: 'Waktu Saat Ini',
+						mode: 'lines',
+						type: 'line',
+						rangemode: 'tozero',
+						line: {color: 'red', dash: 'dash', width : 3}
+					};
+					var garis24 = {
+						x: [24, 24],
+						y: [0, 1],
+						name: 'Jam 00 Besok',
+						mode: 'lines',
+						type: 'line',
+						showlegend: false,
+						line: {color: 'grey', dash: 'solid', width : 1}
+					};
+					var garis48 = {
+						x: [48, 48],
+						y: [0, 1],
+						name: 'Jam 00 Lusa',
+						mode: 'lines',
+						type: 'line',
+						showlegend: false,
+						line: {color: 'grey', dash: 'solid', width : 1}
+					};
+	    
+					// Konfigurasi layout plot	
+					
+					var layout3 = {
+						title: 'Forecast Cuaca oleh CMA China Selama 3 Hari',
+						xaxis: {
+							title: 'Jam',
+							tickvals: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70, 72], // Menyertakan jam 0, 24, 48, dan 72
+							ticktext: ['02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '00', '02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '00', '02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '00'], // Label untuk masing-masing jam
+							tickmode: 'array',
+							tickangle: -45, // Sudut label sumbu x
+							dtick: 2 // Interval tick sumbu x menjadi 2 jam
+						},
+						yaxis: {
+							title: 'Nilai',
+							rangemode: 'tozero',
+							//automargin: true
+							//range: [0,1]
+						},
+						showlegend: false,
+						legend: {
+							
+							"orientation": "h"
+							//xanchor: 'right',
+							//x: 1,
+							//y: 1
+						},
+						autosize: true
+					};
+		
+					// Menampilkan plot
+					Plotly.newPlot('plot3', [trace0, trace1, trace2, trace3, trace4, trace5, garis, garis24, garis48], layout3, {responsive: true});
+				})
+			.catch(error => console.error(error));
+			
+		// Data untuk grafik 4 (Weather Graph GEM Canada)
+        // Data dari API
+		var url4 = "https://api.open-meteo.com/v1/forecast?latitude=" + latitude + "&longitude=" + longitude + "&hourly=temperature_2m,precipitation,rain,weather_code,surface_pressure,cloud_cover_high&timezone=Asia%2FSingapore&forecast_days=3&models=gem_seamless";
+				
+				// Ambil data dari API
+	            fetch(url4)
+	            .then(response => response.json())
+	            .then(data => {
+					
+					// Ambil data temperatur 2 meter
+					var temperatures = data['hourly']['temperature_2m'].slice(0, 72);
+
+					// Ambil data probabilitas presipitasi
+					var precipitation_probabilities = data['hourly']['precipitation'].slice(0, 72);
+
+					// Ambil data hujan
+					var rain = data['hourly']['rain'].slice(0, 72);
+
+					// Ambil data tekanan udara
+					var surface_pressures = data['hourly']['surface_pressure'].slice(0, 72);
+					
+					// Ambil data tutupan awan
+					var cloud_cover = data['hourly']['cloud_cover_high'].slice(0, 72);
+					//var cloud_cover = data['hourly']['cloudcover'].slice(0, 72);
+					
+					// Ambil data kode cuaca
+					var weathercode = data['hourly']['weather_code'].slice(0,72);
+					
+					// Mengatur sumbu x dengan jam
+					var hours = Array.from({length: 72}, (_, i) => i + 1);
+
+					
+					//Data untuk plot kode cuaca
+					var trace0 = {
+						x: hours,
+						y: weathercode.map(
+						weather => weather/100),
+						name: 'Kode Cuaca: <0.03 cerah, =0.45 kabut, >0.8 hujan',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'red', dash: 'solid', width : 1}
+					};
+					
+					// Data untuk plot presipitasi
+					var trace1 = {
+						x: hours,
+						y: precipitation_probabilities.map(prob => prob/12),
+						name: ' Presipitasi: x100% ',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'blue', width : 5}
+					};
+					
+					// Data untuk plot tutupan awan
+					var trace2 = {
+						x: hours,
+						y: cloud_cover.map(cover => cover/100),
+						//y: cloud_cover.map(cover => (cover-20)/80),
+						name: 'Tutupan Awan: x100%',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'green'}
+					};
+					
+					// Data untuk plot tekanan udara
+					var trace3 = {
+						x: hours,
+						y: surface_pressures.map(pressure => ((pressure-970)/100)+0.5),
+						name: 'Tekanan Udara: 0=970, 1=1015',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'black'}
+					};
+					
+					// Data untuk plot temperatur 2m
+					var trace4 = {
+						x: hours,
+						y: temperatures.map(temp => (temp-23)/10),
+						name: 'Temperatur: 0=24°C, 0.5=29°C, 1=34°C',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'orange'}
+					};
+					
+					var trace5 = {
+						x: hours,
+						y: rain.map(r => (r/10)),
+						name: 'Hujan',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'purple'}
+					};
+					
+					var now = new Date();
+					var skrg = now.getHours() + '.' + now.getMinutes();
+
+					var garis = {
+						x: [skrg, skrg],
+						y: [0, 1],
+						name: 'Waktu Saat Ini',
+						mode: 'lines',
+						type: 'line',
+						rangemode: 'tozero',
+						line: {color: 'red', dash: 'dash', width : 3}
+					};
+					var garis24 = {
+						x: [24, 24],
+						y: [0, 1],
+						name: 'Jam 00 Besok',
+						mode: 'lines',
+						type: 'line',
+						showlegend: false,
+						line: {color: 'grey', dash: 'solid', width : 1}
+					};
+					var garis48 = {
+						x: [48, 48],
+						y: [0, 1],
+						name: 'Jam 00 Lusa',
+						mode: 'lines',
+						type: 'line',
+						showlegend: false,
+						line: {color: 'grey', dash: 'solid', width : 1}
+					};
+	    
+					// Konfigurasi layout plot	
+					
+					var layout4 = {
+						title: 'Forecast Cuaca oleh GEM Canada Selama 3 Hari',
+						xaxis: {
+							title: 'Jam',
+							tickvals: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70, 72], // Menyertakan jam 0, 24, 48, dan 72
+							ticktext: ['02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '00', '02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '00', '02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '00'], // Label untuk masing-masing jam
+							tickmode: 'array',
+							tickangle: -45, // Sudut label sumbu x
+							dtick: 2 // Interval tick sumbu x menjadi 2 jam
+						},
+						yaxis: {
+							title: 'Nilai',
+							rangemode: 'tozero',
+							//automargin: true
+							//range: [0,1]
+						},
+						showlegend: false,
+						legend: {
+							
+							"orientation": "h"
+							//xanchor: 'right',
+							//x: 1,
+							//y: 1
+						},
+						autosize: true
+					};
+		
+					// Menampilkan plot
+					Plotly.newPlot('plot4', [trace0, trace1, trace2, trace3, trace4, trace5, garis, garis24, garis48], layout4, {responsive: true});
+				})
+			.catch(error => console.error(error));
+			
+			
+			
+			
+			
+			// Data untuk grafik 4 (Weather Graph GEM Canada)
+        // Data dari API
+		var url5 = "https://api.open-meteo.com/v1/forecast?latitude=-0.4917&longitude=117.1458&hourly=temperature_2m,precipitation,rain,weather_code,surface_pressure,cloud_cover_high&forecast_days=3&models=ecmwf_ifs025&timezone=Asia%2FSingapore";
+				
+				// Ambil data dari API
+	            fetch(url5)
+	            .then(response => response.json())
+	            .then(data => {
+					
+					// Ambil data temperatur 2 meter
+					var temperatures = data['hourly']['temperature_2m'].slice(0, 72);
+
+					// Ambil data probabilitas presipitasi
+					var precipitation_probabilities = data['hourly']['precipitation'].slice(0, 72);
+
+					// Ambil data hujan
+					var rain = data['hourly']['rain'].slice(0, 72);
+
+					// Ambil data tekanan udara
+					var surface_pressures = data['hourly']['surface_pressure'].slice(0, 72);
+					
+					// Ambil data tutupan awan
+					var cloud_cover = data['hourly']['cloud_cover_high'].slice(0, 72);
+					//var cloud_cover = data['hourly']['cloudcover'].slice(0, 72);
+					
+					// Ambil data kode cuaca
+					var weathercode = data['hourly']['weather_code'].slice(0,72);
+					
+					// Mengatur sumbu x dengan jam
+					var hours = Array.from({length: 72}, (_, i) => i + 1);
+
+					
+					//Data untuk plot kode cuaca
+					var trace0 = {
+						x: hours,
+						y: weathercode.map(
+						weather => weather/100),
+						name: 'Kode Cuaca: <0.03 cerah, =0.45 kabut, >0.8 hujan',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'red', dash: 'solid', width : 1}
+					};
+					
+					// Data untuk plot presipitasi
+					var trace1 = {
+						x: hours,
+						y: precipitation_probabilities.map(prob => prob/12),
+						name: ' Presipitasi: x100% ',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'blue', width : 5}
+					};
+					
+					// Data untuk plot tutupan awan
+					var trace2 = {
+						x: hours,
+						y: cloud_cover.map(cover => cover/100),
+						//y: cloud_cover.map(cover => (cover-20)/80),
+						name: 'Tutupan Awan: x100%',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'green'}
+					};
+					
+					// Data untuk plot tekanan udara
+					var trace3 = {
+						x: hours,
+						y: surface_pressures.map(pressure => ((pressure-970)/100)+0.5),
+						name: 'Tekanan Udara: 0=970, 1=1015',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'black'}
+					};
+					
+					// Data untuk plot temperatur 2m
+					var trace4 = {
+						x: hours,
+						y: temperatures.map(temp => (temp-23)/10),
+						name: 'Temperatur: 0=24°C, 0.5=29°C, 1=34°C',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'orange'}
+					};
+					
+					var trace5 = {
+						x: hours,
+						y: rain.map(r => (r/10)),
+						name: 'Hujan',
+						mode: 'lines',
+						type: 'scatter',
+						line: {color: 'purple'}
+					};
+					
+					var now = new Date();
+					var skrg = now.getHours() + '.' + now.getMinutes();
+
+					var garis = {
+						x: [skrg, skrg],
+						y: [0, 1],
+						name: 'Waktu Saat Ini',
+						mode: 'lines',
+						type: 'line',
+						rangemode: 'tozero',
+						line: {color: 'red', dash: 'dash', width : 3}
+					};
+					var garis24 = {
+						x: [24, 24],
+						y: [0, 1],
+						name: 'Jam 00 Besok',
+						mode: 'lines',
+						type: 'line',
+						showlegend: false,
+						line: {color: 'grey', dash: 'solid', width : 1}
+					};
+					var garis48 = {
+						x: [48, 48],
+						y: [0, 1],
+						name: 'Jam 00 Lusa',
+						mode: 'lines',
+						type: 'line',
+						showlegend: false,
+						line: {color: 'grey', dash: 'solid', width : 1}
+					};
+	    
+					// Konfigurasi layout plot	
+					
+					var layout5 = {
+						title: 'Forecast Cuaca oleh ECMWF Selama 3 Hari',
+						xaxis: {
+							title: 'Jam',
+							tickvals: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70, 72], // Menyertakan jam 0, 24, 48, dan 72
+							ticktext: ['02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '00', '02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '00', '02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22', '00'], // Label untuk masing-masing jam
+							tickmode: 'array',
+							tickangle: -45, // Sudut label sumbu x
+							dtick: 2 // Interval tick sumbu x menjadi 2 jam
+						},
+						yaxis: {
+							title: 'Nilai',
+							rangemode: 'tozero',
+							//automargin: true
+							//range: [0,1]
+						},
+						showlegend: false,
+						legend: {
+							
+							"orientation": "h"
+							//xanchor: 'right',
+							//x: 1,
+							//y: 1
+						},
+						autosize: true
+					};
+		
+					// Menampilkan plot
+					Plotly.newPlot('plot5', [trace0, trace1, trace2, trace3, trace4, trace5, garis, garis24, garis48], layout5, {responsive: true});
+				})
+			.catch(error => console.error(error));
+			
+    };
+	</script>
+</body>
+</html>
